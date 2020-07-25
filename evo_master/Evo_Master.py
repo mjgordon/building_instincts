@@ -9,12 +9,22 @@ import threading as thrd
 import Evo_Tools as ET
 import os
 import time
+from Evo_Project import EvoProject
 from MultiNEAT import GetGenomeList, Genome, NeuralNetwork
+
+# Name of project folder to load
+project_name = 'balance'
+
+# Project configuration currently being trained
+current_project = None
 
 if __name__ == "__main__":
 
     cwd = os.getcwd()
     print(cwd)
+
+    current_project = EvoProject(project_name)
+
     ET.kill_clients()
     n_clients_online = 0
     evo_clients = []
@@ -27,11 +37,13 @@ if __name__ == "__main__":
             n_clients_online += 1
     if n_clients_online > 0:
         print(len(evo_clients), "client(s) created, ", n_clients_online, "online")
-        if not ET.start_from_seed:
-            pop, pop_size_init = ET.init_pop(evo_clients)
+        # Create new randomized genomes
+        if not current_project.start_from_seed:
+            pop, pop_size_init = ET.init_pop(evo_clients,current_project)
+        # Load best genomes from seed file
         else:
-            seed_genome = Genome(ET.seed_file_name + ET.genome_suffix)
-            print("starting from seed genome in file", ET.seed_file_name + ET.genome_suffix, ", genome ID:",
+            seed_genome = Genome(current_project.seed_load_name + ET.genome_suffix)
+            print("starting from seed genome in file", current_project.seed_load_name + ET.genome_suffix, ", genome ID:",
                   seed_genome.GetID())
             pop, pop_size_init = ET.pop_from_seed(evo_clients, seed_genome)
             seed_genome.Save('seed_from' + ET.genome_suffix)
@@ -40,7 +52,7 @@ if __name__ == "__main__":
         prepare_eval_threads = []
         lock = thrd.Lock()
         for client in evo_clients:
-            new_thrd = thrd.Thread(target=ET.prepare_eval, args=(client, ET.eval_scene, lock))
+            new_thrd = thrd.Thread(target=ET.prepare_eval, args=(client, current_project.eval_scene, lock))
             prepare_eval_threads.append(new_thrd)
             new_thrd.start()
         for thread in prepare_eval_threads:
@@ -50,22 +62,22 @@ if __name__ == "__main__":
         gen_history = []
         av_fitn_history = []
         best_fitn_history = []
-        if ET.start_from_seed:
-            show_seed = ET.seed_file_name
+        if current_project.start_from_seed:
+            show_seed = current_project.seed_load_name
         else:
             show_seed = False
-        if ET.safe_bestever:
-            show_bestever = ET.chosen_one_name
+        if current_project.save_best_genome:
+            show_bestever = current_project.seed_save_name
         else:
             show_bestever = False
         start_time_n_date = str(time.asctime(time.localtime()))
-        if ET.mpl_monitor:
+        if current_project.mpl_monitor:
             import Evo_Visualize as visualize
             fig = visualize.init_plot()
 
             #    vvv_________________________main generational loop: __________________________vvv
         for generation in range(ET.n_generations):
-            if ET.mpl_monitor:
+            if current_project.mpl_monitor:
                 visualize.set_timer_starttime('current')
             print("")
             print("___________________ next generation:", generation, "___________________")
@@ -76,7 +88,7 @@ if __name__ == "__main__":
             init_eval_threads = []
             lock = thrd.RLock()
             for client in evo_clients:
-                new_thrd = thrd.Thread(target=ET.init_eval, args=(client, gene_pool, ET.eval_scene, lock))
+                new_thrd = thrd.Thread(target=ET.init_eval, args=(client, gene_pool, current_project.eval_scene, lock))
                 init_eval_threads.append(new_thrd)
                 new_thrd.start()
             for thread in init_eval_threads:
@@ -107,8 +119,8 @@ if __name__ == "__main__":
             best_fitn_yet = pop.GetBestFitnessEver()
             if best_now_fitn > best_fitn_yet or generation == 0:
                 bestever = best_now
-                if ET.safe_bestever:
-                    bestever.Save(ET.chosen_one_name + ET.genome_suffix)
+                if current_project.save_best_genome:
+                    bestever.Save(current_project.seed_save_name + ET.genome_suffix)
                 best_ever_gen = generation
                 best_ever_fitn = best_now_fitn
             print("average fitness            ", av_fitn)
@@ -123,25 +135,25 @@ if __name__ == "__main__":
             for genome in genome_list:
                 if genome.IsEvaluated():
                     last_pop_size += 1
-            if ET.start_from_seed:
-                show_seed = ET.seed_file_name
+            if current_project.start_from_seed:
+                show_seed = current_project.seed_load_name
             else:
                 show_seed = False
-            if ET.safe_bestever:
-                show_bestever = ET.chosen_one_name
+            if current_project.save_best_genome:
+                show_bestever = current_project.seed_save_name
             else:
                 show_bestever = False
             net_bestever = NeuralNetwork()  # create Networks to display
             net_bestnow = NeuralNetwork()
             bestever.BuildPhenotype(net_bestever)
             best_now.BuildPhenotype(net_bestnow)
-            if ET.mpl_monitor:
-                try: visualize.draw_plot(ET.exp_title, ET.exp_subtitle, show_seed, show_bestever, start_time_n_date,
+            if current_project.mpl_monitor:
+                try: visualize.draw_plot(current_project.exp_title, current_project.exp_subtitle, show_seed, show_bestever, start_time_n_date,
                                     last_pop_size, pop_size_init, n_clients,
                                     n_clients_online, fig, best_fitn_history, av_fitn_history,
                                     gen_history, best_ever_gen, best_ever_fitn, net_bestever, net_bestnow)
                 except: print('visualisation failed')
-                visualize.save_plot_to_pdf(fig, ET.pdf_filename)
+                visualize.save_plot_to_pdf(fig, current_project.pdf_filename)
 
             # work the evo magic
             pop.Epoch()
@@ -159,3 +171,6 @@ if __name__ == "__main__":
     else:
         print("no clients online")
     print("program ended")
+
+
+
