@@ -21,7 +21,6 @@ from time import time, sleep
 cwd = os.getcwd()
 
 # Visualisation
-mpl_monitor = True
 exp_title = 'Brick Stacking'
 eval_scene = cwd + '/eval_scenes/balancing_2020.ttt'
 #eval_scene = cwd + '/eval_scenes/WS_BoxPushing_random.ttt'
