@@ -13,7 +13,7 @@ from Evo_Project import EvoProject
 from MultiNEAT import GetGenomeList, Genome, NeuralNetwork
 
 # Name of project folder to load
-project_name = 'balance'
+project_name = 'sputnik'
 
 # Project configuration currently being trained
 current_project = None
