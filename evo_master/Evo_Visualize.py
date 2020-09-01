@@ -23,7 +23,7 @@ timer_start_time = {}  # global dict for start_times
 
 def save_plot_to_pdf(fig, filename):
     pp = PdfPages(filename)
-    pp.savefig(fig,facecolor = (0.7, 0.7, 0.7)) # Force background color
+    pp.savefig(fig, facecolor=(0.7, 0.7, 0.7)) # Force background color
     pp.close()
 
 

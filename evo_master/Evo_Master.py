@@ -13,7 +13,7 @@ from Evo_Project import EvoProject
 from MultiNEAT import GetGenomeList, Genome, NeuralNetwork
 
 # Name of project folder to load
-project_name = 'sputnik'
+project_name = 'stacking'
 
 # Project configuration currently being trained
 current_project = None
