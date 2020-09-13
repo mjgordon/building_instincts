@@ -25,7 +25,6 @@ genome_suffix = '.mng'  # default = '.mng' (MultiNeatGenome)
 
 # Debug
 verbose = True
-path_to_gene_pool = ''
 
 # EVO NET CONFIG
 client_connection_timeout = 1000
@@ -33,8 +32,8 @@ client_comm_cycle_time = 10  # default: 10
 evo_client_map = {'127.0.0.1': [19997]}
 #evo_client_map = {'127.0.0.1': [19997, 19996, 19995, 19994]}
 #evo_client_map = {'127.0.0.1': [19997, 19996, 19995, 19994, 19993, 19992, 19991, 19990, 19989, 19988]}
-genomes_per_client_each = []
-genomes_per_client_all = 4  # -1 to use list 'genomes_per_client_each', otherwise this amount is used for every client
+#genomes_per_client_each = []
+#genomes_per_client_all = 4  # -1 to use list 'genomes_per_client_each', otherwise this amount is used for every client
 
 
 # MULTINEAT CONFIG
@@ -44,7 +43,7 @@ random_seed = 0
 
 # MY EVO CONFIG
 n_generations = 100000
-timeout_one_gen = 90  # seconds
+timeout_one_gen = 300  # seconds
 
 # VREP COMM MODES
 mode1 = sim.simx_opmode_oneshot
@@ -93,7 +92,7 @@ class Evo_Client(object):
             # -1 = not ready/error, 0 = ready, 1 = active, 2 = done
         return self.status
 
-    def save_genomes_to_files(self):
+    def save_genomes_to_files(self, project):
         """
         save the genomes associated with this client
         """
@@ -103,9 +102,9 @@ class Evo_Client(object):
                     self.genome_filenames.append(this_genome_filename)
 
         for this_genome, this_genome_filename in zip(self.genomes, self.genome_filenames):
-            this_genome.Save(path_to_gene_pool + this_genome_filename)
+            this_genome.Save(project.path_to_gene_pool + this_genome_filename)
 
-    def transfer_genomes(self, timeout):
+    def transfer_genomes(self, timeout, project):
         """
         transfer the genome files to the evo-client
         """
@@ -114,7 +113,7 @@ class Evo_Client(object):
         sim.simxClearIntegerSignal(self.clientID, "ClientID_Signal", mode1)
         sim.simxSetIntegerSignal(self.clientID, "ClientID_Signal", self.clientID, mode1)
         for i, filename in enumerate(self.genome_filenames):
-            file_to_transfer = path_to_gene_pool + filename
+            file_to_transfer = project.path_to_gene_pool + filename
             ret = sim.simxTransferFile(self.clientID, file_to_transfer, filename, timeout, mode1) #default: mode2
             if ret == 0: checksum += 1
         return checksum
@@ -298,7 +297,7 @@ def prepare_eval(client, eval_scene, lock):
             lock.release()
 
 
-def init_eval(client, gene_pool, eval_scene, lock):
+def init_eval(client, gene_pool, eval_scene, lock, current_project):
     client.update_status()
     if not client.is_online:
         if verbose: print("client at", client.ip, ':', client.port, "is offline.")
@@ -323,9 +322,9 @@ def init_eval(client, gene_pool, eval_scene, lock):
         lock.acquire()
         client.grab_new_genomes(gene_pool)
         lock.release()
-        client.save_genomes_to_files()
+        client.save_genomes_to_files(current_project)
         then = time()
-        checksum = client.transfer_genomes(timeout = 500) # ms
+        checksum = client.transfer_genomes(timeout = 500, project = current_project) # ms
 
         lock.acquire()
         if checksum == len(client.genomes): print("client", client.clientID, "all genomes transferred in",

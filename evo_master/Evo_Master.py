@@ -29,7 +29,7 @@ if __name__ == "__main__":
     n_clients_online = 0
     evo_clients = []
     print("initializing evo-network...")
-    evo_clients = ET.init_evo_net(ET.evo_client_map, ET.genomes_per_client_each, ET.genomes_per_client_all)
+    evo_clients = ET.init_evo_net(ET.evo_client_map, current_project.genomes_per_client, current_project.genomes_per_client)
     for client in evo_clients:
         client.reset()
         client.update_status()
@@ -45,7 +45,7 @@ if __name__ == "__main__":
             seed_genome = Genome(current_project.seed_load_name + ET.genome_suffix)
             print("starting from seed genome in file", current_project.seed_load_name + ET.genome_suffix, ", genome ID:",
                   seed_genome.GetID())
-            pop, pop_size_init = ET.pop_from_seed(evo_clients, seed_genome)
+            pop, pop_size_init = ET.pop_from_seed(evo_clients, seed_genome,current_project)
             seed_genome.Save('seed_from' + ET.genome_suffix)
         print("The population comprises", pop_size_init, "genomes")
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
             init_eval_threads = []
             lock = thrd.RLock()
             for client in evo_clients:
-                new_thrd = thrd.Thread(target=ET.init_eval, args=(client, gene_pool, current_project.eval_scene, lock))
+                new_thrd = thrd.Thread(target=ET.init_eval, args=(client, gene_pool, current_project.eval_scene, lock,current_project))
                 init_eval_threads.append(new_thrd)
                 new_thrd.start()
             for thread in init_eval_threads:
