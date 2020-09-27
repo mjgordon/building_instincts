@@ -341,8 +341,8 @@ def draw_plot(title_text, title2_text, seed, best, start_time_n_date, a_pop_size
         tick.set_visible(False)
         tick.label1.set_visible(False)
 
-    draw_nn(ax_nn_best_ever, net_bestever, col_bestever)
-    draw_nn(ax_nn_best_current, net_bestnow, col_best_current)
+    draw_nn(fig, ax_nn_best_ever, net_bestever, col_bestever)
+    draw_nn(fig, ax_nn_best_current, net_bestnow, col_best_current)
 
     # plt.draw()
     fig.canvas.draw()
@@ -351,16 +351,20 @@ def draw_plot(title_text, title2_text, seed, best, start_time_n_date, a_pop_size
     # time.sleep(0.05)
 
 
-def draw_nn(ax, net, anno_color):
+def draw_nn(fig,ax, net, anno_color):
     """Draw a neural network graphic into an axes"""
     ax.clear()
-    width = 1000
-    height = 600
+
+    # Extract the pixel size of the axes
+    bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+    width = int(bbox.width * fig.dpi)
+    height = int(bbox.height * fig.dpi)
+
     image = np.zeros((height, width, 3), np.uint8)
     image[:, 0:width] = (255 * 0.85, 255 * 0.85, 255 * 0.85)  # Grey background
     rect = (0, 0, width, height)
-    neuron_circle_dia = 15
-    max_line_width = 10
+    neuron_circle_dia = 8
+    max_line_width = 5
     DrawPhenotype(image, rect, net, neuron_circle_dia, max_line_width)
     b, g, r = cv2.split(image)
     rgb_img = cv2.merge([r, g, b])
