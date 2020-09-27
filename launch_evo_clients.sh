@@ -4,17 +4,21 @@ pushd . > /dev/null
 
 BASEDIR=$(dirname "$0")
 
-oldport=19997          
-gnome-terminal -- bash -c "cd ${BASEDIR}/CoppeliaSim_Edu_V4_1_0_Ubuntu18_04_new/ ; ./coppeliaSim.sh"
-sleep 5 
-for i in {1..3};do
-	newport=$((19997 - i)) 	
-	sed -i.bak "s/$oldport/$newport/" $BASEDIR/CoppeliaSim_Edu_V4_1_0_Ubuntu18_04_new/remoteApiConnections.txt 	
-	gnome-terminal -- bash -c "cd ${BASEDIR}/CoppeliaSim_Edu_V4_1_0_Ubuntu18_04_new/ ; ./coppeliaSim.sh -h" 
-	sleep 5
-	oldport=$newport
+default_port=19997
+client_count=4
+
+i=0
+while [ "$i" -lt "$client_count" ]; do
+    newport=$(($default_port - i))
+    cmd="cd ${BASEDIR}/CoppeliaSim_Edu_V4_1_0_Ubuntu18_04/ ; ./coppeliaSim.sh -gREMOTEAPISERVERSERVICE_${newport}_FALSE_FALSE"
+    if [ "$i" -gt 0 ]
+    then
+	cmd="${cmd} -h"
+    fi
+    
+    gnome-terminal -- bash -c "$cmd"
+    i=$(($i + 1))
 done
 
-sed -i.bak "s/$oldport/19997/" $BASEDIR/CoppeliaSim_Edu_V4_1_0_Ubuntu18_04_new/remoteApiConnections.txt
 
 popd >/dev/null
