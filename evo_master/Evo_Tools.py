@@ -29,11 +29,7 @@ verbose = True
 # EVO NET CONFIG
 client_connection_timeout = 1000
 client_comm_cycle_time = 10  # default: 10
-evo_client_map = {'127.0.0.1': [19997]}
-#evo_client_map = {'127.0.0.1': [19997, 19996, 19995, 19994]}
-#evo_client_map = {'127.0.0.1': [19997, 19996, 19995, 19994, 19993, 19992, 19991, 19990, 19989, 19988]}
-#genomes_per_client_each = []
-#genomes_per_client_all = 4  # -1 to use list 'genomes_per_client_each', otherwise this amount is used for every client
+evo_client_map = {}
 
 
 # MULTINEAT CONFIG

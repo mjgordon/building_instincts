@@ -13,7 +13,7 @@ from Evo_Project import EvoProject
 from MultiNEAT import GetGenomeList, Genome, NeuralNetwork
 
 # Name of project folder to load
-project_name = 'stacking'
+project_name = 'balancing'
 
 # Project configuration currently being trained
 current_project = None
@@ -29,12 +29,15 @@ if __name__ == "__main__":
     n_clients_online = 0
     evo_clients = []
     print("initializing evo-network...")
+    ET.evo_client_map[current_project.client_ip] = list(range(19997, 19997 - current_project.client_count, -1))
+
     evo_clients = ET.init_evo_net(ET.evo_client_map, current_project.genomes_per_client, current_project.genomes_per_client)
     for client in evo_clients:
         client.reset()
         client.update_status()
         if client.is_online:
             n_clients_online += 1
+
     if n_clients_online > 0:
         print(len(evo_clients), "client(s) created, ", n_clients_online, "online")
         # Create new randomized genomes
@@ -170,6 +173,7 @@ if __name__ == "__main__":
 
     else:
         print("no clients online")
+
     print("program ended")
 
 
