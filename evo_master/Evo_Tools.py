@@ -255,27 +255,28 @@ def init_evo_net(evo_net_mapping, genome_distribution, n_genomes_default):
     return evo_clients
 
 
-def init_pop(evo_clients, current_project):
-    pop_size_required = 0
-    for i, client in enumerate(evo_clients):  # determine total number of genomes needed
-        pop_size_required += current_project.genomes_per_client
+def init_pop_new(pop_size, current_project):
+    """ Create a new randomized population using the default parameters"""
     MN.Parameters.Load(params, para_file)
-    params.PopulationSize = pop_size_required
+    params.PopulationSize = pop_size
     genome = MN.Genome(0,
                        current_project.nn_in, current_project.nn_hidden, current_project.nn_outs, current_project.nn_start_minimal,
                        MN.ActivationFunction.UNSIGNED_SIGMOID,
                        MN.ActivationFunction.UNSIGNED_SIGMOID, 1, params, 0)
     pop = MN.Population(genome, params, True, 1.0, random_seed)  # randomized for first gen
-    return pop, pop_size_required
+    return pop, pop_size
 
 
-def pop_from_seed(evo_clients, a_seed_genome, current_project):
-    pop_size_required = 0
-    for i, client  in enumerate(evo_clients):
-            pop_size_required += current_project.genomes_per_client
-    params.PopulationSize = pop_size_required;
+def init_pop_from_seed(pop_size, a_seed_genome, current_project):
+    params.PopulationSize = pop_size
     pop = MN.Population(a_seed_genome, params, False, 0.1, 1)
-    return pop, pop_size_required
+    return pop, pop_size
+
+
+def init_pop_from_file(current_project):
+    pop = MN.Population(current_project.path_to_gene_pool + "population.pop")
+    pop_size = pop.Parameters.PopulationSize
+    return pop, pop_size
 
 
 def prepare_eval(client, eval_scene, lock):

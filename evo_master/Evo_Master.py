@@ -10,7 +10,8 @@ import Evo_Tools as ET
 import os
 import time
 from Evo_Project import EvoProject
-from MultiNEAT import GetGenomeList, Genome, NeuralNetwork
+from MultiNEAT import GetGenomeList, Genome, NeuralNetwork,Population
+
 
 # Name of project folder to load
 project_name = 'balancing'
@@ -40,18 +41,20 @@ if __name__ == "__main__":
 
     if n_clients_online > 0:
         print(len(evo_clients), "client(s) created, ", n_clients_online, "online")
-        # Create new randomized genomes
-        if not current_project.start_from_seed:
-            pop, pop_size_init = ET.init_pop(evo_clients,current_project)
+        if current_project.start_from_file:
+            pop, pop_size_init = ET.init_pop_from_file(current_project)
         # Load best genomes from seed file
-        else:
+        elif current_project.start_from_seed:
             seed_genome = Genome(current_project.seed_load_name + ET.genome_suffix)
             print("starting from seed genome in file", current_project.seed_load_name + ET.genome_suffix, ", genome ID:",
                   seed_genome.GetID())
-            pop, pop_size_init = ET.pop_from_seed(evo_clients, seed_genome,current_project)
+            pop, pop_size_init = ET.init_pop_from_seed(len(evo_clients) * current_project.genomes_per_client, seed_genome, current_project)
             seed_genome.Save('seed_from' + ET.genome_suffix)
-        print("The population comprises", pop_size_init, "genomes")
+        # Create new randomized genomes
+        else:
+            pop, pop_size_init = ET.init_pop_new(len(evo_clients) * current_project.genomes_per_client, current_project)
 
+        print("The population comprises", pop_size_init, "genomes")
         prepare_eval_threads = []
         lock = thrd.Lock()
         for client in evo_clients:
@@ -160,6 +163,8 @@ if __name__ == "__main__":
 
             # work the evo magic
             pop.Epoch()
+
+            pop.Save(current_project.path_to_gene_pool + "population.pop")
 
             time.sleep(0.5)
             # this is needed to make sure on the clients' side, MNPluginSimFinished()
