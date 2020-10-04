@@ -68,15 +68,6 @@ def main():
         for thread in prepare_eval_threads:
             thread.join()
 
-        #    prepare plotting stuff:    
-        if current_project.start_from_seed:
-            show_seed = current_project.seed_load_name
-        else:
-            show_seed = False
-        if current_project.save_best_genome:
-            show_bestever = current_project.seed_save_name
-        else:
-            show_bestever = False
         if current_project.mpl_monitor:
             fig = visualize.init_plot()
 
@@ -102,8 +93,8 @@ def evaluate_generation(generation_id, current_project, pop, evo_clients, viz,n_
     global bestever, best_ever_gen, best_ever_fitn
     if current_project.mpl_monitor:
         visualize.set_timer_starttime('current')
-    print("")
-    print("___________________ next generation:", generation_id, "___________________")
+
+    print("\n___________________ next generation:", generation_id, "___________________")
 
     # create and launch initialization threads:
     print('launching evaluations...')
