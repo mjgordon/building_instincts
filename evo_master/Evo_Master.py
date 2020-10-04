@@ -97,6 +97,7 @@ def main():
             for thread in init_eval_threads:
                 try: thread.join()
                 except: pass
+
             # create and launch monitoring threads
             print('evaluating...')
             monitor_eval_threads = []

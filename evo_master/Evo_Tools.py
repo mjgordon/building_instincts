@@ -110,8 +110,9 @@ class Evo_Client(object):
         sim.simxSetIntegerSignal(self.clientID, "ClientID_Signal", self.clientID, mode1)
         for i, filename in enumerate(self.genome_filenames):
             file_to_transfer = project.path_to_gene_pool + filename
-            ret = sim.simxTransferFile(self.clientID, file_to_transfer, filename, timeout, mode1) #default: mode2
-            if ret == 0: checksum += 1
+            ret = sim.simxTransferFile(self.clientID, file_to_transfer, filename, timeout, mode1)  # default: mode2
+            if ret == 0:
+                checksum += 1
         return checksum
 
     def end(self):
@@ -215,6 +216,14 @@ class Evo_Client(object):
             success = False
         return success
 
+
+class EvoJob(object):
+    __slots__ = 'genomes'
+
+    def __init__(self):
+        pass
+
+
 def create_gene_pool_folder(current_project):
     path_to_gene_pool = current_project.path_to_gene_pool  # -> where all genome files reside on the evo_master side
     if not os.path.exists(path_to_gene_pool):
@@ -298,6 +307,7 @@ def prepare_eval(client, eval_scene, lock):
 
 
 def init_eval(client, gene_pool, eval_scene, lock, current_project):
+    """ Threaded function to simulation execution """
     client.update_status()
     if not client.is_online:
         if verbose: print("client at", client.ip, ':', client.port, "is offline.")
@@ -324,11 +334,11 @@ def init_eval(client, gene_pool, eval_scene, lock, current_project):
         lock.release()
         client.save_genomes_to_files(current_project)
         then = time()
-        checksum = client.transfer_genomes(timeout = 500, project = current_project) # ms
+        checksum = client.transfer_genomes(timeout=500, project=current_project)  # ms
 
         lock.acquire()
-        if checksum == len(client.genomes): print("client", client.clientID, "all genomes transferred in",
-                                                  time() - then, "seconds")
+        if checksum == len(client.genomes):
+            print("client", client.clientID, "all genomes transferred in", time() - then, "seconds")
         else:
             print("client", client.clientID, len(client.genomes) - checksum, "genomes could not be transferred")
         lock.release()
@@ -347,6 +357,7 @@ def init_eval(client, gene_pool, eval_scene, lock, current_project):
 
 
 def monitor_eval(client, lock):
+    """ Threaded function to start monitoring of simulation"""
     then = time()
     time_passed = 0
     step_counter = 0
