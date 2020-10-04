@@ -11,7 +11,7 @@ import Evo_Visualize as visualize
 import os
 import time
 from Evo_Project import EvoProject
-from MultiNEAT import GetGenomeList, Genome, NeuralNetwork,Population
+from MultiNEAT import GetGenomeList, Genome, NeuralNetwork, Population
 
 
 # Name of project folder to load
@@ -43,47 +43,48 @@ def main():
         if client.is_online:
             n_clients_online += 1
 
-    if n_clients_online > 0:
-        print(len(evo_clients), "client(s) created, ", n_clients_online, "online")
-        if current_project.start_from_file:
-            pop, pop_size_init = ET.init_pop_from_file(current_project)
-        # Load best genomes from seed file
-        elif current_project.start_from_seed:
-            seed_genome = Genome(current_project.seed_load_name + ET.genome_suffix)
-            print("starting from seed genome in file", current_project.seed_load_name + ET.genome_suffix, ", genome ID:",
-                  seed_genome.GetID())
-            pop, pop_size_init = ET.init_pop_from_seed(len(evo_clients) * current_project.genomes_per_client, seed_genome, current_project)
-            seed_genome.Save('seed_from' + ET.genome_suffix)
-        # Create new randomized genomes
-        else:
-            pop, pop_size_init = ET.init_pop_new(len(evo_clients) * current_project.genomes_per_client, current_project)
-
-        print("The population comprises", pop_size_init, "genomes")
-        prepare_eval_threads = []
-        lock = thrd.Lock()
-        for client in evo_clients:
-            new_thrd = thrd.Thread(target=ET.prepare_eval, args=(client, current_project.eval_scene, lock))
-            prepare_eval_threads.append(new_thrd)
-            new_thrd.start()
-        for thread in prepare_eval_threads:
-            thread.join()
-
-        if current_project.mpl_monitor:
-            fig = visualize.init_plot()
-
-        viz = visualize.Visualization(fig)
-
-        # Run main generation loop
-        for generation_id in range(ET.n_generations):
-            evaluate_generation(generation_id, current_project, pop, evo_clients, viz, n_clients_online)
-
-        # Close client connections
-        for client in evo_clients:
-            if client.is_online:
-                client.end()
-
-    else:
+    # Quit if there are no connected clients
+    if n_clients_online == 0:
         print("no clients online")
+        return
+
+    print(len(evo_clients), "client(s) created, ", n_clients_online, "online")
+    if current_project.start_from_file:
+        pop, pop_size_init = ET.init_pop_from_file(current_project)
+    # Load best genomes from seed file
+    elif current_project.start_from_seed:
+        seed_genome = Genome(current_project.seed_load_name + ET.genome_suffix)
+        print("starting from seed genome in file", current_project.seed_load_name + ET.genome_suffix, ", genome ID:",
+              seed_genome.GetID())
+        pop, pop_size_init = ET.init_pop_from_seed(len(evo_clients) * current_project.genomes_per_client, seed_genome, current_project)
+        seed_genome.Save('seed_from' + ET.genome_suffix)
+    # Create new randomized genomes
+    else:
+        pop, pop_size_init = ET.init_pop_new(len(evo_clients) * current_project.genomes_per_client, current_project)
+
+    print("The population comprises", pop_size_init, "genomes")
+    prepare_eval_threads = []
+    lock = thrd.Lock()
+    for client in evo_clients:
+        new_thrd = thrd.Thread(target=ET.prepare_eval, args=(client, current_project.eval_scene, lock))
+        prepare_eval_threads.append(new_thrd)
+        new_thrd.start()
+    for thread in prepare_eval_threads:
+        thread.join()
+
+    if current_project.mpl_monitor:
+        fig = visualize.init_plot()
+
+    viz = visualize.Visualization(fig)
+
+    # Run main generation loop
+    for generation_id in range(ET.n_generations):
+        evaluate_generation(generation_id, current_project, pop, evo_clients, viz, n_clients_online)
+
+    # Close client connections
+    for client in evo_clients:
+        if client.is_online:
+            client.end()
 
     print("program ended")
 
