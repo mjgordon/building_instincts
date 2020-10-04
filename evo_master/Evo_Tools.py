@@ -268,14 +268,17 @@ def init_pop_new(pop_size, current_project):
 
 
 def init_pop_from_seed(pop_size, a_seed_genome, current_project):
+    """ Create a new population based off a single seed genome"""
     params.PopulationSize = pop_size
     pop = MN.Population(a_seed_genome, params, False, 0.1, 1)
     return pop, pop_size
 
 
 def init_pop_from_file(current_project):
+    """ Load a saved population file from the last run of the system"""
     pop = MN.Population(current_project.path_to_gene_pool + "population.pop")
     pop_size = pop.Parameters.PopulationSize
+    params.PopulationSize = pop_size
     return pop, pop_size
 
 
