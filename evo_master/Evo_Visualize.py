@@ -22,6 +22,17 @@ from MultiNEAT import DrawPhenotype
 timer_start_time = {}
 
 
+class Visualization(object):
+    __slots__ = 'fig', 'gen_history', 'av_fitn_history', 'best_fitn_history', 'start_time_n_date'
+
+    def __init__(self,fig):
+        self.fig = fig
+        self.gen_history = []
+        self.av_fitn_history = []
+        self.best_fitn_history = []
+        self.start_time_n_date = str(time.asctime(time.localtime()))
+
+
 def save_plot_to_pdf(fig, filename):
     """Save the drawn plot to a .pdf file"""
     pp = PdfPages(filename)
