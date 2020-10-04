@@ -16,19 +16,16 @@ from MultiNEAT import GetGenomeList, Genome, NeuralNetwork,Population
 # Name of project folder to load
 project_name = 'balancing'
 
-# Project configuration currently being trained
-current_project = None
 
-if __name__ == "__main__":
-
+def main():
     cwd = os.getcwd()
     print(cwd)
 
+    # Project configuration currently being trained
     current_project = EvoProject(project_name)
 
     ET.kill_clients()
     n_clients_online = 0
-    evo_clients = []
     print("initializing evo-network...")
     ET.evo_client_map[current_project.client_ip] = list(range(19997, 19997 - current_project.client_count, -1))
 
@@ -181,5 +178,9 @@ if __name__ == "__main__":
 
     print("program ended")
 
+
+# Script Entry Point
+if __name__ == "__main__":
+    main()
 
 
